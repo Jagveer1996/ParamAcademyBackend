@@ -33,8 +33,8 @@ router.post('/login', async (req, res) => {
     const matchPassword = await bycrypt.compare(password, user[0].password);
 
     // console.log(matchPassword)   
-    const abcd = user[0].password
-
+    const role = user[0].role
+    
     console.log("registration role check", user[0].role);
 
     if (matchPassword) {
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
 
         await knex('registration').where({id: user[0].id}).update({refresh_token})
 
-        res.status(200).json({ "message": "User Logged IN Successfully", "data": { email, abcd, AccessToken } })
+        res.status(200).json({ "message": "User Logged IN Successfully", "data": { email, role  , AccessToken } })
 
     } else {
         res.status(400).json({ "message": "Incorrect password" })
