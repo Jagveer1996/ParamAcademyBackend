@@ -1,0 +1,85 @@
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const folders = [
+  "courseImage",
+];
+
+const getMulterUploader = (uploadType) => {
+  const storage = multer.diskStorage({
+    destination: (req, file, callBack) => {
+          const folderName = folders.includes(uploadType);
+          
+      if (!folderName) {
+        return callBack(new Error("Invalid upload type"));
+      }
+
+      const fullPath = path.join(__dirname, "..", "uploads", uploadType);
+
+      // Create folder if it doesn't exist
+      fs.mkdir(fullPath, { recursive: true }, (err) => {
+        if (err) {
+          return callBack(err);
+        }
+        callBack(null, fullPath);
+      });
+    },
+    filename: (req, file, callBack) => {
+      callBack(
+        null,
+        file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      );
+    },
+  });
+
+  //video type
+  // const allowedVideoTypes = ["video/mp4", "video/mkv", "video/avi"];
+
+  const fileFilter = (req, file, cb) => {
+    const allowedImageTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/jpg",
+      "video/mp4",
+      "video/mkv",
+      "video/avi",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/csv",
+      "application/csv",
+      "application/vnd.ms-excel.sheet.macroEnabled.12", // .xlsm
+      "application/vnd.ms-excel.sheet.binary.macroEnabled.12", // .xlsb
+      "application/vnd.ms-excel.template.macroEnabled.12", // .xltm
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.template", // .xltx
+      "application/vnd.ms-excel.addin.macroEnabled.12", // .xlam
+      "application/zip",
+      "application/octet-stream",
+      'application/x-zip-compressed',
+      "application/vnd.oasis.opendocument.presentation",
+      "application/vnd.oasis.opendocument.spreadsheet",
+      "application/vnd.oasis.opendocument.text",
+    ];
+
+    if (
+      folders.includes(uploadType) &&
+      allowedImageTypes.includes(file.mimetype)
+    ) {
+      cb(null, true);
+    } else {
+      const err = new Error("Invalid file type!");
+      err.status = 400;
+      cb(err, false);
+    }
+  };
+
+  return multer({
+    storage,
+    fileFilter,
+  }).single(uploadType);
+};
+
+module.exports = { getMulterUploader };
